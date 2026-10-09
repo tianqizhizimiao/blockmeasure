@@ -21,6 +21,7 @@ __all__ = [
     "grid_labels_2d",
     "convex_hull_2d",
     "points_in_hull",
+    "min_area_rect_2d",
 ]
 
 
@@ -167,3 +168,59 @@ def points_in_hull(queries: np.ndarray, hull: np.ndarray) -> np.ndarray:
             (b[0] - a[0]) * (q[:, 1] - a[1]) - (b[1] - a[1]) * (q[:, 0] - a[0])
         ) >= -1e-9
     return result
+
+
+@dataclass
+class MinAreaRect:
+    """二维点集的最小面积外接矩形。"""
+
+    length: float
+    """较长边。"""
+    width: float
+    """较短边。"""
+    area: float
+    axis: tuple
+    """``length`` 边方向的单位向量 ``(x, y)``。"""
+
+    @property
+    def aspect(self) -> float:
+        return self.length / self.width if self.width > 0 else float("inf")
+
+
+def min_area_rect_2d(points: np.ndarray) -> Optional[MinAreaRect]:
+    """求二维点集的最小面积外接矩形（旋转卡壳的暴力版本）。
+
+    做法：先取凸包，再依次把每条凸包边转到水平，取包围盒面积最小者。
+    凸包点数很少（通常十几到几十），所以这个 O(h²) 的写法完全够用，
+    且不需要引入 OpenCV。
+
+    Returns:
+        :class:`MinAreaRect`；点不足以构成凸包时返回 ``None``。
+    """
+    pts = np.asarray(points, dtype=np.float64)
+    if len(pts) < 3:
+        return None
+    hull = convex_hull_2d(pts)
+    if len(hull) < 3:
+        return None
+
+    best: Optional[MinAreaRect] = None
+    for i in range(len(hull)):
+        a = hull[i]
+        b = hull[(i + 1) % len(hull)]
+        edge = b - a
+        norm = float(np.hypot(edge[0], edge[1]))
+        if norm < 1e-12:
+            continue
+        ux, uy = edge[0] / norm, edge[1] / norm
+        rel = hull - a
+        along = rel[:, 0] * ux + rel[:, 1] * uy
+        perp = -rel[:, 0] * uy + rel[:, 1] * ux
+        w = float(along.max() - along.min())
+        h = float(perp.max() - perp.min())
+        area = w * h
+        if best is None or area < best.area:
+            best = MinAreaRect(
+                length=max(w, h), width=min(w, h), area=area, axis=(ux, uy)
+            )
+    return best

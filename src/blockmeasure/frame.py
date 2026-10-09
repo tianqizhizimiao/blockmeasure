@@ -98,6 +98,27 @@ class TrayFrame:
             reference=str(d.get("reference", "reference")),
         )
 
+    @classmethod
+    def from_reference(cls, scene) -> "TrayFrame":
+        """把一次实测场景的现算坐标系标为固定参考。
+
+        Args:
+            scene: 一个 :class:`~blockmeasure.results.SceneResult`（通常用一次
+                专门"校准用"的干净扫描）。
+
+        Returns:
+            同参数的 :class:`TrayFrame`，但 ``reference="reference"``——之后传给
+            ``measure_blocks(frame=...)`` 即可把每次测量表达在这套固定坐标系里。
+        """
+        f = scene.frame
+        return cls(
+            origin=f.origin,
+            axis_u=f.axis_u,
+            axis_v=f.axis_v,
+            normal=f.normal,
+            reference="reference",
+        )
+
     def save(self, path: str) -> None:
         """保存为 JSON，便于"标定一次、反复复用"。"""
         with open(path, "w", encoding="utf-8") as fp:

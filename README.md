@@ -4,7 +4,9 @@
 
 面向"需要拿到物块三维尺寸与位置，但不想自己实现平面拟合与分割"的使用方：装上一个包，传进去数据，拿到结构化结果。
 
-> **状态：2.0 开发中。** 接口尚未冻结，本 README 会随实现更新。
+> **状态：2.0 核心已完成。** IO、测量、渲染、CLI 全部实现；`tests/` 的 pytest 套件
+> 含对 1.0 全部 19 条确定性结果的逐值黄金回归（`pytest -m slow`，需要 `../1.0/data`）。
+> 接口尚未冻结，本 README 会随实现更新。
 > 1.0（`../1.0/`）是已验证可用的脚本版本，其输出的 19 条确定性结果被 2.0 用作黄金回归基准。
 
 ## 安装
@@ -74,7 +76,44 @@ scene = measure_blocks("scan_001.ply", frame=TrayFrame.load("tray_frame.json"))
 
 ## 返回值
 
-会随实现补全。计划包含 `SceneResult`（`blocks` / `frame` / `plane_rms_mm` / `tray_size_mm`）与 `Block`（颜色、RGB、高、宽、长、托盘系坐标、倾角、平整度、点数）。
+`measure_blocks()` 返回冻结 dataclass `SceneResult`（`from blockmeasure import SceneResult`）：
+
+| 字段 | 含义 |
+|---|---|
+| `blocks` | 检出的物块，按高度降序，`block_id` 从 1 开始；可能为空元组（未检出物块，这不是错误） |
+| `frame` | 本次使用的托盘坐标系（`reference="scan"` 现算，或传入的固定参考） |
+| `plane_rms_mm` | 基准面拟合残差 std —— 精度自检，本数据集为 1.0~2.7 mm |
+| `tray_size_mm` | 基准面足迹尺寸 (u 跨度, v 跨度)，启发式，只用于限定测量范围 |
+| `points` | 预处理后参与计算的点数 |
+| `source` | `点云` / `深度原帧` / `数组` |
+| `name` / `note` / `log` | 输入名、加载说明、各阶段摘要 |
+
+`SceneResult.blocks` 里每个 `Block`（`from blockmeasure import Block`）：
+
+| 字段 | 含义 |
+|---|---|
+| `block_id` / `color` / `rgb` | 序号、颜色归类、平均 RGB（无彩色时为 `None`） |
+| `height_mm` / `height_max_mm` | 顶面平台高度 / 块内最大高度 |
+| `length_mm` / `width_mm` | 顶面平台在托盘 u / v 方向的跨度 |
+| `u_mm` / `v_mm` / `center_xyz_mm` | 底面投影中心与顶面中心（`(u, v, height)`） |
+| `tilt_deg` / `flatness_mm` | 顶面倾角 / 平整度；覆盖不足时为 `None`（NA） |
+| `points` | 属于该块、计入分割的点数 |
+
+字段名即契约；各字段的精确语义见 `src/blockmeasure/results.py` 的 docstring。
+
+## 命令行
+
+```bash
+# 单个点云
+blockmeasure data/cs04.ply
+
+# 深度原帧 + 内参（D415 必须给深度尺度）
+blockmeasure data/tu1_Depth.raw --meta data/tu1_Depth_metadata.csv --depth-scale 0.000694
+
+# 批量 + 固定坐标系复用
+blockmeasure data/scan_001.ply data/scan_002.ply --frame tray_frame.json
+blockmeasure data/clean_scan.ply --save-frame tray_frame.json
+```
 
 ## 兼容性
 
