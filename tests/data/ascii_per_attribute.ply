@@ -1,0 +1,30 @@
+ply
+format ascii 1.0
+comment 合成 fixture：故意采用「每个顶点占 3 行」的非法写法（xyz / 法向 / rgb 各一行）
+comment 复刻 1.0 data/sc03.ply 的换行怪癖，用于锁定 ASCII 修复逻辑
+element vertex 4
+property float x
+property float y
+property float z
+property float nx
+property float ny
+property float nz
+property uchar red
+property uchar green
+property uchar blue
+element face 1
+property list uchar int vertex_indices
+end_header
+0 0 0
+0 0 1
+255 0 0
+1 0 0
+0 0 1
+0 255 0
+1 1 0
+0 0 1
+0 0 255
+0 1 0
+0 0 1
+255 255 0
+3 0 1 2

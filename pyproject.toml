@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blockmeasure"
+version = "2.0.0"
+description = "从深度相机点云或深度帧测量托盘上物块的颜色、长×宽×高，以及物块在托盘坐标系中的位置"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "TqZzMiao", email = "tianqizhizi_miao@outlook.com" }]
+keywords = [
+    "depth-camera",
+    "point-cloud",
+    "measurement",
+    "realsense",
+    "3d-vision",
+    "robotics",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+# 核心只依赖 numpy。点云读取与出图拆成 extras，装不上也不影响核心功能。
+dependencies = ["numpy>=1.21"]
+
+[project.optional-dependencies]
+ply = ["trimesh>=3.9"]
+render = ["pillow>=9.0"]
+all = ["blockmeasure[ply,render]"]
+dev = ["pytest>=7", "pytest-cov", "build", "hatchling>=1.18"]
+
+[project.urls]
+Homepage = "https://github.com/tianqizhizimiao/blockmeasure"
+Repository = "https://github.com/tianqizhizimiao/blockmeasure"
+Issues = "https://github.com/tianqizhizimiao/blockmeasure/issues"
+
+[project.scripts]
+blockmeasure = "blockmeasure.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/blockmeasure"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/blockmeasure", "tests", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: 完整 6 组数据黄金回归，需要 ../1.0/data，本地跑（CI 用合成 fixture 跳过）",
+]

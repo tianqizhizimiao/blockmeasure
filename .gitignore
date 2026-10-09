@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# 打包产物
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# 类型检查 / 格式化缓存
+.mypy_cache/
+.ruff_cache/
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+
+# 本地黄金回归数据（46 MB，不进仓库；测试用 tests/data/ 里的小 fixture）
+golden_data/
