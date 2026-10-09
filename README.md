@@ -117,11 +117,13 @@ blockmeasure data/clean_scan.ply --save-frame tray_frame.json
 
 ## 兼容性
 
-- Python **>= 3.9**
+- Python **>= 3.9**；CI 矩阵 `3.9 / 3.10 / 3.11 / 3.12 / 3.13 / 3.14`（[.github/workflows/ci.yml](.github/workflows/ci.yml)）
 - 依赖 `numpy>=1.21`
-- 已在 CI 中验证的版本矩阵：见 `.github/workflows/ci.yml`
+- CI 每次 push / PR 执行：装 `[all,dev]` → `pytest` → `python -m build` 并验证 wheel 可装可导入
 
 > 本机只有 Python 3.11 与 3.14，其余版本**由 CI 矩阵担保**，不是本地实测。
+> 全量黄金回归需要 `../1.0/data`（46 MB，不进仓库），CI 里自动 skip；但 CI 仍会用
+> 仓库自带的 `tests/data/tu1_Depth.raw` 跑真实端到端数值校验，不是只有单元测试。
 
 ## 许可
 

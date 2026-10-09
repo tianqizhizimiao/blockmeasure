@@ -1,6 +1,7 @@
 """IO 层测试：PLY 两种写法、深度帧反投影、错误路径。"""
 
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -15,21 +16,51 @@ from blockmeasure import (
     load_depth,
     load_ply,
 )
+from blockmeasure.io import _load_ascii_ply
 
 HERE = Path(__file__).parent
 FIXTURE_PLY = HERE / "data" / "ascii_per_attribute.ply"
 
 
-def test_load_ply_ascii_per_attribute():
-    """tests/data 的合成 4 顶点 PLY：锁定「逐属性分行」适配逻辑。"""
-    P, C, note = load_ply(str(FIXTURE_PLY))
+def test_ascii_fallback_parser_direct():
+    """直接测 fallback 解析器 —— 与 trimesh 装没装 / 什么版本无关。
+
+    夹具是**故意非法**的 ASCII PLY（每顶点 xyz/法向/rgb 各一行），
+    所以不能依赖「trimesh 一定解析失败」来触发回落：这里绕过 trimesh 直接验。
+    """
+    P, C, note = _load_ascii_ply(str(FIXTURE_PLY))
     assert P.shape == (4, 3)
     assert C.shape == (4, 3)
     assert C.dtype in (np.int64, np.int32)
     assert note == "ASCII 逐属性分行写法已适配"
+    # 拉平后按 9 属性/顶点重组：xyz 与 rgb 都应落在预期行上
+    assert np.allclose(P, [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+    assert np.array_equal(C, [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]])
     assert np.isfinite(P).all()
-    # RGB 是 uint8 量级，clip 后不会越界
     assert C.min() >= 0 and C.max() <= 255
+
+
+def test_load_ply_without_trimesh(monkeypatch):
+    """trimesh 不可用时（只装了核心依赖）仍能读 ASCII 逐属性分行 PLY。"""
+    monkeypatch.setitem(sys.modules, "trimesh", None)  # `import trimesh` 抛 ImportError
+    P, C, note = load_ply(str(FIXTURE_PLY))
+    assert P.shape == (4, 3)
+    assert C.shape == (4, 3)
+    assert note == "ASCII 逐属性分行写法已适配"
+
+
+def test_load_ply_fixture_any_backend():
+    """走完整 load_ply：无论最终由 trimesh 还是 fallback 解析，结果必须一致可读。
+
+    note 在不同 trimesh 版本下可能为 ``""``（trimesh 自己读成功了）或
+    fallback 的提示语，因此这里只断言数据本身。
+    """
+    P, C, note = load_ply(str(FIXTURE_PLY))
+    assert P.ndim == 2 and P.shape[1] == 3
+    assert len(P) >= 4
+    assert C is None or (C.shape == P.shape and C.min() >= 0 and C.max() <= 255)
+    assert note in ("", "ASCII 逐属性分行写法已适配")
+    assert np.isfinite(P).all()
 
 
 def test_load_ply_missing_file():

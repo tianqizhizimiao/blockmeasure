@@ -62,6 +62,21 @@ def load_ply(path: str) -> Tuple[np.ndarray, Optional[np.ndarray], str]:
         except Exception:
             pass  # 落入 fallback 解析器
 
+    return _load_ascii_ply(path)
+
+
+def _load_ascii_ply(path: str) -> Tuple[np.ndarray, Optional[np.ndarray], str]:
+    """fallback 解析器：读「ASCII 逐属性分行」写法的 PLY（1.0 ``data/sc03.ply`` 的怪癖）。
+
+    该写法把每个顶点的 xyz / 法向 / rgb 各写一行，严格按行读会错位。这里把所有
+    空白分隔的数值拉平后按 9 个属性一顶点重组，于是两种写法通用。
+
+    独立成函数是为了能被直接测试——不依赖 trimesh 装没装、是 4.x 还是 5.x
+    都走同一条路径。
+
+    Raises:
+        UnsupportedFormatError: 非 ASCII PLY、头无顶点数，或数据量与声明不符。
+    """
     raw = open(path, "rb").read()
     try:
         pos = raw.index(b"end_header") + len(b"end_header")
@@ -89,7 +104,11 @@ def load_ply(path: str) -> Tuple[np.ndarray, Optional[np.ndarray], str]:
     if len(tok) != need + n_f * 4:
         raise UnsupportedFormatError(f"{path}: 数据量不符，无法自动修复")
     arr = np.array(tok[:need], dtype=np.float64).reshape(n_v, 9)
-    return arr[:, 0:3], np.clip(arr[:, 6:9], 0, 255).astype(int), "ASCII 逐属性分行写法已适配"
+    return (
+        arr[:, 0:3],
+        np.clip(arr[:, 6:9], 0, 255).astype(int),
+        "ASCII 逐属性分行写法已适配",
+    )
 
 
 def load_depth(path_raw: str, camera: CameraProfile) -> Tuple[np.ndarray, str]:

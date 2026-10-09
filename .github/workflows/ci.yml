@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 说明：全量黄金回归数据（../1.0/data，46 MB）不进仓库，因此 CI 里：
+#   - tests/test_golden.py::test_golden_all_six_datasets          自动 skip
+#   - tests/test_golden.py::test_golden_tu1_smoke_on_repo_fixture 用仓库自带的
+#     tests/data/tu1_Depth.raw 跑真实端到端数值校验（依赖 D415 深度尺度）
+# 也就是说 CI 仍然有「真实数据 + 逐值比对」这一层，不是只有单元测试。
+
+jobs:
+  test:
+    name: py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: 安装（核心 + [all] extras + 开发依赖）
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[all,dev]"
+
+      - name: 测试
+        run: python -m pytest -q
+
+      - name: 打包并验证 wheel 可装可导入
+        run: |
+          python -m build
+          python -m pip install --force-reinstall --no-deps dist/*.whl
+          python -c "import blockmeasure; print('wheel ok', blockmeasure.__version__)"
