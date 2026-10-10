@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
@@ -120,7 +121,13 @@ class TrayFrame:
         )
 
     def save(self, path: str) -> None:
-        """保存为 JSON，便于"标定一次、反复复用"。"""
+        """保存为 JSON，便于"标定一次、反复复用"。
+
+        父目录不存在时自动创建（``save("calib/tray.json")`` 直接可用）。
+        """
+        parent = os.path.dirname(path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
         with open(path, "w", encoding="utf-8") as fp:
             json.dump(self.to_dict(), fp, ensure_ascii=False, indent=2)
 

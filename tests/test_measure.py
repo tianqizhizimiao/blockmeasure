@@ -119,6 +119,17 @@ def test_fixed_frame_roundtrip():
         assert pytest.approx(b1.height_mm, abs=1e-6) == b2.height_mm
 
 
+def test_tray_frame_save_creates_parent_dir(tmp_path):
+    """save() 自动创建父目录——标定产物常写到 calib/ 这类还不存在的目录。"""
+    r = measure(_scene_points(), cfg=Config(denoise_radius_m=0.0))
+    p = tmp_path / "calib" / "tray.json"
+    TrayFrame.from_reference(r).save(str(p))
+    assert p.exists()
+    loaded = TrayFrame.load(str(p))
+    assert loaded.reference == "reference"
+    assert loaded.origin == pytest.approx(r.frame.origin)
+
+
 def test_fixed_frame_from_real_scan():
     """tests/data 的真实 tu1 帧：用自身现算帧复用，坐标不变。"""
     from blockmeasure import CameraProfile
