@@ -24,27 +24,78 @@ from .results import SceneResult
 __all__ = ["main", "build_parser"]
 
 
+_EPILOG = """\
+示例:
+  # 单个点云
+  blockmeasure data/cs04.ply
+
+  # 深度原帧 + 内参（D415 必须给对深度尺度）
+  blockmeasure data/tu1_Depth.raw --meta data/tu1_Depth_metadata.csv --depth-scale 0.000694
+
+  # 批量处理 data/ 下全部素材
+  blockmeasure --all -o output
+
+  # 标定一次托盘坐标系，之后反复复用（这样跨次坐标才可比）
+  blockmeasure data/clean_scan.ply --save-frame tray_frame.json
+  blockmeasure data/scan_001.ply --frame tray_frame.json
+
+输出:
+  <out>/measurements.csv        每个物块一行（字段与 1.0 一致）
+  <out>/<name>_height.png       高度图（颜色越红越高）
+  <out>/<name>_seg.png          分割图（每块一色）
+  后两张图需 [render] extra，可用 --no-render 关闭。
+
+注意:
+  --depth-scale 取错会让所有高度整体缩放，且不报任何错。Intel D415 为 0.000694。
+  单个文件失败不会中断整批：错误打到 stderr，其余文件继续处理。
+
+更多用法见仓库 docs/ 目录，或 Python 里 help(blockmeasure.measure_blocks)。
+"""
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         prog="blockmeasure",
-        description="从深度相机点云或深度帧测量托盘上物块的颜色、长宽高与托盘坐标系位置",
+        description=(
+            "从深度相机点云（.ply）或深度原帧（.raw）测量托盘上物块的"
+            "颜色、长×宽×高，以及物块在托盘坐标系中的位置。"
+        ),
+        epilog=_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
     )
-    ap.add_argument(
-        "--version", action="version", version=f"blockmeasure {__version__}"
-    )
-    ap.add_argument("inputs", nargs="*", help="点云 .ply 或深度帧 .raw")
-    ap.add_argument("--meta", help="深度帧对应的内参 CSV")
-    ap.add_argument("-o", "--out", default="output", help="输出目录")
-    ap.add_argument("--all", action="store_true", help="处理 data/ 下全部素材")
-    ap.add_argument("--no-render", action="store_true", help="不输出核对渲染图")
-    ap.add_argument("--voxel", type=float, default=0.0,
-                    help="体素下采样边长(米)，0=不下采样")
-    ap.add_argument("--depth-scale", type=float, default=None,
-                    help="深度单位(米/计数)；与 --meta 一起用。D415 实测 0.000694")
-    ap.add_argument("--frame",
-                    help="托盘坐标系 JSON（标定一次、反复复用），块坐标表达在该系")
-    ap.add_argument("--save-frame", metavar="PATH",
-                    help="把本次现算的托盘坐标系保存到 JSON 文件（用于校准）")
+    ap.add_argument("-h", "--help", action="help", help="显示本帮助并退出")
+    ap.add_argument("--version", action="version",
+                    version=f"blockmeasure {__version__}",
+                    help="显示版本号并退出")
+
+    g_in = ap.add_argument_group("输入")
+    g_in.add_argument("inputs", nargs="*", metavar="FILE",
+                      help="一个或多个 .ply 点云 / .raw 深度原帧")
+    g_in.add_argument("--all", action="store_true",
+                      help="处理当前目录 data/ 下的全部素材（.ply 与 *_Depth.raw）")
+    g_in.add_argument("--meta", metavar="CSV",
+                      help="深度原帧的内参 CSV；缺省时自动在 .raw 旁找 "
+                           "<name>_metadata.csv（注意其中不含深度尺度）")
+    g_in.add_argument("--depth-scale", type=float, default=None, metavar="M",
+                      help="深度单位（米/计数），与 --meta 一起用；"
+                           "Intel D415 实测 0.000694，缺省 0.001")
+
+    g_out = ap.add_argument_group("输出")
+    g_out.add_argument("-o", "--out", default="output", metavar="DIR",
+                       help="输出目录（默认 output），会写出 measurements.csv")
+    g_out.add_argument("--no-render", action="store_true",
+                       help="不输出核对渲染图（只要 CSV 时更快；出图需 [render] extra）")
+
+    g_alg = ap.add_argument_group("算法")
+    g_alg.add_argument("--voxel", type=float, default=0.0, metavar="M",
+                       help="体素下采样边长（米），0=不下采样；调大可提速")
+
+    g_frame = ap.add_argument_group("托盘坐标系")
+    g_frame.add_argument("--frame", metavar="JSON",
+                         help="使用已标定的托盘坐标系，让每次测量的块坐标可比")
+    g_frame.add_argument("--save-frame", metavar="JSON",
+                         help="把本次现算的托盘坐标系存成 JSON，供以后 --frame 复用")
     return ap
 
 
