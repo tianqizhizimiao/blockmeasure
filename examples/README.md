@@ -36,7 +36,7 @@ python examples/03_ply_and_render.py /path/to/your/scan.ply
 2. **托盘坐标系跨次不可比**：默认每次现算，原点会漂移。
    要跨次比较位置，先按示例 4 标定一次固定坐标系。
 
-更多说明见仓库根目录的 [README](../README.md) 与 [文档站](https://tianqizhizimiao.github.io/blockmeasure/)。
+更多说明见仓库根目录的 [README](../README.md) 与 [docs/](../docs/)。
 
 ## 输出物
 

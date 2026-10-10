@@ -64,9 +64,12 @@ for b in scene.blocks:
 
 - [快速开始](quickstart.md) —— 三种输入、返回值、坐标系，逐个讲清
 - [命令行](cli.md) —— 不想写代码时的用法
-- [常见问题](faq.md) —— 两个最容易踩的坑（深度尺度、坐标系）
-- [API 参考](api.md) —— 由 docstring 自动生成
-- [更新日志](changelog.md)
+- [常见问题](faq.md) —— 最容易踩的几个坑（深度尺度、坐标系）
+- [API 参考](api.md) —— 公开 API 索引、字段语义与异常
+- [更新日志](../CHANGELOG.md)
+
+> 更细的一手信息在源码 docstring 里：`help(blockmeasure.measure_blocks)`。
+> 命令行选项与示例见 `blockmeasure --help`。
 
 ## 许可
 

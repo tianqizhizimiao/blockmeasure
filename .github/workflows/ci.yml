@@ -41,23 +41,3 @@ jobs:
           python -m build
           python -m pip install --force-reinstall --no-deps dist/*.whl
           python -c "import blockmeasure; print('wheel ok', blockmeasure.__version__)"
-
-  docs:
-    name: docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-
-      - name: 安装文档依赖
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[docs]"
-
-      # --strict：断链、缺失锚点、docstring 解析告警一律当错误，防止文档腐烂
-      - name: 构建文档站
-        run: mkdocs build --strict

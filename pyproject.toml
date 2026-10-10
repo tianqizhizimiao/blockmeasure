@@ -41,11 +41,10 @@ ply = ["trimesh>=3.9"]
 render = ["pillow>=9.0"]
 all = ["blockmeasure[ply,render]"]
 dev = ["pytest>=7", "pytest-cov", "build", "hatchling>=1.18"]
-docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.25", "ruff>=0.6"]
 
 [project.urls]
 Homepage = "https://github.com/tianqizhizimiao/blockmeasure"
-Documentation = "https://tianqizhizimiao.github.io/blockmeasure/"
+Documentation = "https://github.com/tianqizhizimiao/blockmeasure/tree/main/docs"
 Repository = "https://github.com/tianqizhizimiao/blockmeasure"
 Changelog = "https://github.com/tianqizhizimiao/blockmeasure/blob/main/CHANGELOG.md"
 Issues = "https://github.com/tianqizhizimiao/blockmeasure/issues"
@@ -62,7 +61,6 @@ include = [
     "tests",
     "examples",
     "docs",
-    "mkdocs.yml",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

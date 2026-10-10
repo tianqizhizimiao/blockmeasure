@@ -11,19 +11,16 @@
 
 ## 文档
 
+纯 Markdown，拉到本地直接读，**不需要任何构建工具**：
+
 | 资源 | 内容 |
 |---|---|
-| [文档站](https://tianqizhizimiao.github.io/blockmeasure/) | 快速开始 / 命令行 / 常见问题 / API 参考 |
+| [docs/](docs/) | 快速开始 / 命令行 / 常见问题 / API 参考 |
 | [examples/](examples/) | 5 个可运行示例，**前 4 个开箱即跑**（用仓库自带夹具） |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更记录 |
-| [API 参考](https://tianqizhizimiao.github.io/blockmeasure/api/) | 由源码 docstring 自动生成 |
+| `blockmeasure --help` | 命令行全部选项、示例与输出说明 |
 
-本地预览文档站：
-
-```bash
-pip install -e ".[docs]"
-mkdocs serve
-```
+更细的一手信息在源码 docstring 里：`help(blockmeasure.measure_blocks)`。
 
 ## 安装
 
@@ -145,14 +142,13 @@ blockmeasure data/clean_scan.ply --save-frame tray_frame.json
 
 **怎么提速？** 体素下采样 `Config(voxel_m=0.005)`，命令行 `--voxel 0.005`；只要数值时加 `--no-render`。
 
-完整问答见 [常见问题文档](https://tianqizhizimiao.github.io/blockmeasure/faq/)。
+完整问答见 [docs/faq.md](docs/faq.md)。
 
 ## 兼容性
 
 - Python **>= 3.9**；CI 矩阵 `3.9 / 3.10 / 3.11 / 3.12 / 3.13 / 3.14`（[.github/workflows/ci.yml](.github/workflows/ci.yml)）
 - 依赖 `numpy>=1.21`
-- CI 每次 push / PR 执行：装 `[all,dev]` → `pytest` → `python -m build` 并验证 wheel 可装可导入；
-  另有独立 job 用 `mkdocs build --strict` 校验文档站（断链即失败）
+- CI 每次 push / PR 执行：装 `[all,dev]` → `pytest` → `python -m build` 并验证 wheel 可装可导入
 
 > 本机只有 Python 3.11 与 3.14，其余版本**由 CI 矩阵担保**，不是本地实测。
 > 全量黄金回归需要 `../1.0/data`（46 MB，不进仓库），CI 里自动 skip；但 CI 仍会用
