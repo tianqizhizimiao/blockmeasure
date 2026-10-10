@@ -90,7 +90,9 @@ def fit_plane_svd(points: np.ndarray) -> tuple:
     """
     pts = np.asarray(points, dtype=np.float64)
     centroid = pts.mean(axis=0)
-    _, _, vt = np.linalg.svd(pts - centroid)
+    # 点集是 (N, 3) 的长条矩阵，full_matrices=True 会分配 N×N 的 U（数万点即数 GB），
+    # 且部分 LAPACK 实现在该路径上会静默算错。只要最小奇异向量，用薄 SVD。
+    _, _, vt = np.linalg.svd(pts - centroid, full_matrices=False)
     return vt[2], centroid
 
 
