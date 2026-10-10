@@ -27,11 +27,14 @@ class CameraProfile:
     """深度相机内参与深度单位。
 
     Args:
-        fx, fy: 焦距（像素）。
-        ppx, ppy: 主点（像素）。
+        fx: 焦距 x（像素）。
+        fy: 焦距 y（像素）。
+        ppx: 主点 x（像素）。
+        ppy: 主点 y（像素）。
         depth_scale_m: **深度单位，米/计数**。默认 ``0.001``。
             这是最容易搞错的一项：取错会让所有高度整体缩放。
-        width, height: 深度分辨率；``None`` 表示由数据推断。
+        width: 深度分辨率宽；``None`` 表示由数据推断。
+        height: 深度分辨率高；``None`` 表示由数据推断。
         distortion_model: 畸变模型名，仅作记录（测量不依赖它）。
     """
 

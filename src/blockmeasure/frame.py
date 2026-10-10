@@ -19,9 +19,12 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Sequence, Tuple
+from typing import TYPE_CHECKING, Sequence, Tuple
 
 import numpy as np
+
+if TYPE_CHECKING:  # 仅为类型标注，避免与 results.py 形成循环导入
+    from .results import SceneResult
 
 __all__ = ["TrayFrame"]
 
@@ -100,7 +103,7 @@ class TrayFrame:
         )
 
     @classmethod
-    def from_reference(cls, scene) -> "TrayFrame":
+    def from_reference(cls, scene: SceneResult) -> "TrayFrame":
         """把一次实测场景的现算坐标系标为固定参考。
 
         Args:
