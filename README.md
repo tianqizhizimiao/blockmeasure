@@ -9,6 +9,22 @@
 > 公开 API 见下方；后续破坏性变更将遵循弃用流程（deprecation），先警告、隔版本再移除。
 > 1.0（`../1.0/`）是已验证可用的脚本版本，其输出的 19 条确定性结果被 2.0 用作黄金回归基准。
 
+## 文档
+
+| 资源 | 内容 |
+|---|---|
+| [文档站](https://tianqizhizimiao.github.io/blockmeasure/) | 快速开始 / 命令行 / 常见问题 / API 参考 |
+| [examples/](examples/) | 5 个可运行示例，**前 4 个开箱即跑**（用仓库自带夹具） |
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更记录 |
+| [API 参考](https://tianqizhizimiao.github.io/blockmeasure/api/) | 由源码 docstring 自动生成 |
+
+本地预览文档站：
+
+```bash
+pip install -e ".[docs]"
+mkdocs serve
+```
+
 ## 安装
 
 ```bash
@@ -115,11 +131,28 @@ blockmeasure data/scan_001.ply data/scan_002.ply --frame tray_frame.json
 blockmeasure data/clean_scan.ply --save-frame tray_frame.json
 ```
 
+## 常见问题
+
+**高度整体差一个固定倍数？** 几乎总是 `depth_scale_m` 取错。深度原帧的深度值是整数计数，乘上深度单位才是米——取错会让所有高度整体缩放，且**不会报错**。D415 为 `0.000694`（用 `CameraProfile.intel_d415()`），本数据集用错值会差约 1.44 倍。注意元数据 CSV 里**不含**深度尺度。
+
+**同一个物块，两次测量的坐标对不上？** 正常。默认的托盘坐标系每次现算、原点随可见区域漂移，要跨次可比请按上方「关于托盘坐标系」标定一次固定坐标系。
+
+**没检出物块，是出错了吗？** 不是。`scene.blocks` 为空元组是合法结果。可查 `plane_rms_mm`（拟合质量）、`tray_size_mm`（基准面是否正确）、`scene.log`（各阶段摘要）定位原因。
+
+**`color` 是 `-`、`rgb` 是 `None`？** 输入没有彩色数据（如深度原帧）。其余测量照常。
+
+**`tilt_deg` 是 `None`？** 顶面覆盖不足（判据：两方向跨度之一 < 15 mm）。`flatness_mm` 比倾角稳健得多。
+
+**怎么提速？** 体素下采样 `Config(voxel_m=0.005)`，命令行 `--voxel 0.005`；只要数值时加 `--no-render`。
+
+完整问答见 [常见问题文档](https://tianqizhizimiao.github.io/blockmeasure/faq/)。
+
 ## 兼容性
 
 - Python **>= 3.9**；CI 矩阵 `3.9 / 3.10 / 3.11 / 3.12 / 3.13 / 3.14`（[.github/workflows/ci.yml](.github/workflows/ci.yml)）
 - 依赖 `numpy>=1.21`
-- CI 每次 push / PR 执行：装 `[all,dev]` → `pytest` → `python -m build` 并验证 wheel 可装可导入
+- CI 每次 push / PR 执行：装 `[all,dev]` → `pytest` → `python -m build` 并验证 wheel 可装可导入；
+  另有独立 job 用 `mkdocs build --strict` 校验文档站（断链即失败）
 
 > 本机只有 Python 3.11 与 3.14，其余版本**由 CI 矩阵担保**，不是本地实测。
 > 全量黄金回归需要 `../1.0/data`（46 MB，不进仓库），CI 里自动 skip；但 CI 仍会用

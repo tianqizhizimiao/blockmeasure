@@ -41,10 +41,13 @@ ply = ["trimesh>=3.9"]
 render = ["pillow>=9.0"]
 all = ["blockmeasure[ply,render]"]
 dev = ["pytest>=7", "pytest-cov", "build", "hatchling>=1.18"]
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.25", "ruff>=0.6"]
 
 [project.urls]
 Homepage = "https://github.com/tianqizhizimiao/blockmeasure"
+Documentation = "https://tianqizhizimiao.github.io/blockmeasure/"
 Repository = "https://github.com/tianqizhizimiao/blockmeasure"
+Changelog = "https://github.com/tianqizhizimiao/blockmeasure/blob/main/CHANGELOG.md"
 Issues = "https://github.com/tianqizhizimiao/blockmeasure/issues"
 
 [project.scripts]
@@ -54,7 +57,16 @@ blockmeasure = "blockmeasure.cli:main"
 packages = ["src/blockmeasure"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/blockmeasure", "tests", "README.md", "LICENSE"]
+include = [
+    "src/blockmeasure",
+    "tests",
+    "examples",
+    "docs",
+    "mkdocs.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

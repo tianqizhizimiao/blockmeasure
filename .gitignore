@@ -33,3 +33,9 @@ htmlcov/
 
 # 本地黄金回归数据（46 MB，不进仓库；测试用 tests/data/ 里的小 fixture）
 golden_data/
+
+# 示例脚本的输出（渲染图 / 坐标系 JSON / CSV）
+examples/_output/
+
+# 文档站构建产物
+site/
